@@ -1,0 +1,23 @@
+{
+    "schemaName": "TEST_Kafka",
+    "dimensionFieldSpecs": [
+      { "name": "SHIPMENT_ID", "dataType": "LONG" },
+      { "name": "ORDER_ID", "dataType": "LONG" },
+      { "name": "AWB_CODE", "dataType": "STRING" },
+      { "name": "LOG_FILE_NUMBER", "dataType": "LONG" },
+      { "name": "LOG_POSITION", "dataType": "LONG" },
+      { "name": "STATUS", "dataType": "INT" },
+      { "name": "STATUS_CODE", "dataType": "STRING" },
+      { "name": "COMPANY_ID", "dataType": "LONG" },
+      { "name": "BEFORE_SHIPMENT_ID", "dataType": "LONG" }
+    ],
+    "dateTimeFieldSpecs": [
+      {
+        "name": "createDate",
+        "dataType": "INT",
+        "format": "1:DAYS:EPOCH",
+        "granularity": "1:DAYS",
+        "expression": "extract(day, now())"
+      }
+    ]
+  }

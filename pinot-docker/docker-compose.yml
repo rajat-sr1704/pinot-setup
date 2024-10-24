@@ -1,0 +1,90 @@
+version: '3.7'
+services:
+  pinot-zookeeper:
+    image: zookeeper:latest
+    container_name: pinot-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  pinot-controller:
+    image: apachepinot/pinot:1.2.0
+    command: "StartController -zkAddress pinot-zookeeper:2181"
+    container_name: pinot-controller
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms1G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-controller.log"
+    depends_on:
+      - pinot-zookeeper
+
+  pinot-broker:
+    image: apachepinot/pinot:1.2.0
+    command: "StartBroker -zkAddress pinot-zookeeper:2181"
+    restart: unless-stopped
+    container_name: "pinot-broker"
+    ports:
+      - "8099:8099"
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms4G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-broker.log"
+    depends_on:
+      - pinot-controller
+
+  pinot-server:
+    image: apachepinot/pinot:1.2.0
+    command: "StartServer -zkAddress pinot-zookeeper:2181"
+    restart: unless-stopped
+    container_name: "pinot-server"
+    ports:
+      - "8098:8098"
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms4G -Xmx16G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-server.log"
+    depends_on:
+      - pinot-broker
+
+  kafka:
+    image: wurstmeister/kafka:latest
+    container_name: kafka
+    depends_on:
+      - pinot-zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: pinot-zookeeper:2181/kafka
+      KAFKA_BROKER_ID: 0
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092  # This specifies Kafka's internal listener
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092  # This is what other services will use to connect
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    restart: unless-stopped
+  
+  # flink-jobmanager:
+  #   image: flink:latest
+  #   container_name: flink-jobmanager
+  #   command: jobmanager
+  #   ports:
+  #     - "8081:8081"
+  #   environment:
+  #     FLINK_PROPERTIES: "jobmanager.rpc.address: flink-jobmanager"
+  #   depends_on:
+  #     - kafka
+  #   restart: unless-stopped
+
+  # flink-taskmanager:
+  #   image: flink:latest
+  #   container_name: flink-taskmanager
+  #   command: taskmanager
+  #   depends_on:
+  #     - flink-jobmanager
+  #   environment:
+  #     FLINK_PROPERTIES: "jobmanager.rpc.address: flink-jobmanager"
+  #   restart: unless-stopped
+
+networks:
+  default:
+    name: pinot-demo
+    driver: bridge

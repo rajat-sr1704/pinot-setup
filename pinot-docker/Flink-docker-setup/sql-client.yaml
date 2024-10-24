@@ -1,0 +1,5 @@
+catalogs:
+  - name: myKafka
+    type: kafka
+    properties:
+      bootstrap.servers: "kafka:9092"  # Replace with your Kafka broker address

@@ -1,0 +1,88 @@
+{
+    "tableName": "transportSchedule",
+    "tableType": "REALTIME",
+    "segmentsConfig": {
+      "timeColumnName": "createDate",
+      "schemaName": "transportSchedule",
+      "replication": "1"
+    },
+    "tenants": {
+    "broker": "", 
+    "server": ""   
+    },
+    "tableIndexConfig": {
+      "loadMode": "MMAP"
+    },
+    "ingestionConfig": {
+      "transformConfigs": [
+        {
+          "columnName": "scheduleNo",
+          "transformFunction": "Groovy({flightNum}, flightNum)",
+          "streamName": "Flights"
+        },
+        {
+          "columnName": "scheduleNo",
+          "transformFunction": "Groovy({trainNo}, trainNo)",
+          "streamName": "TrainSchedules"
+        },
+        {
+          "columnName": "type",
+          "transformFunction": "Groovy({'flight'}, flightNum)",
+          "streamName": "Flights"
+        },
+        {
+          "columnName": "type",
+          "transformFunction": "Groovy({'train'}, trainNo)",
+          "streamName": "TrainSchedules"
+        },
+        {
+          "columnName": "source",
+          "transformFunction": "Groovy({sourceCity}, sourceCity)",
+          "streamName": "Flights"
+        },
+        {
+          "columnName": "source",
+          "transformFunction": "Groovy({src}, src)",
+          "streamName": "TrainSchedules"
+        },
+        {
+          "columnName": "destination",
+          "transformFunction": "Groovy({destCity}, destCity)",
+          "streamName": "Flights"
+        },
+        {
+          "columnName": "destination",
+          "transformFunction": "Groovy({dst}, dst)",
+          "streamName": "TrainSchedules"
+        }
+      ],
+      "streamIngestionConfig": {
+        "streamConfigMaps": [
+                            {
+            "streamType": "kafka",
+            "stream.kafka.consumer.type": "LOWLEVEL",
+            "stream.kafka.broker.list": "localhost:19092",
+            "Stream.kafka.consumer.factory.class.name": "org.apache.pinot.plugin.stream.kafka20.KafkaConsumerFactory",
+            "stream.kafka.topic.name": "Flights",
+            "Stream.kafka.decoder.class.name": "org.apache.pinot.integration.tests.MultiStreamConsumptionIntegrationTest$FlightsMessageDecoder",
+            "realtime.segment.flush.threshold.rows": "6",
+            "stream.kafka.consumer.prop.auto.offset.reset": "smallest"
+            },
+            {
+            "streamType": "kafka",
+            "stream.kafka.consumer.type": "LOWLEVEL",
+            "stream.kafka.broker.list": "localhost:19093",
+            "Stream.kafka.consumer.factory.class.name": "org.apache.pinot.plugin.stream.kafka20.KafkaConsumerFactory",
+            "stream.kafka.topic.name": "TrainSchedules",
+            "Stream.kafka.decoder.class.name": "org.apache.pinot.integration.tests.MultiStreamConsumptionIntegrationTest$TrainSchedulesMessageDecoder",
+            "realtime.segment.flush.threshold.rows": "6",
+            "stream.kafka.consumer.prop.auto.offset.reset": "smallest"
+        }
+]
+    }
+    },
+    "metadata": {
+    "customConfigs": {}
+  }
+  }
+  

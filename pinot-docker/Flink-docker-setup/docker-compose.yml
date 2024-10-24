@@ -1,0 +1,71 @@
+version: '3.7'
+
+services:
+  jobmanager:
+    image: flink:1.20.0
+    hostname: jobmanager
+    container_name: flink_jobmanager
+    ports:
+      - "8081:8081"  # Flink Web UI
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        jobmanager.memory.process.size: 1024m 
+    volumes:
+      - ./flink-config:/opt/flink/conf  # Optional custom Flink configuration
+      - ./plugins:/opt/flink/plugins    # Connectors go here
+    command: jobmanager
+
+  taskmanager:
+    image: flink:1.20.0
+    hostname: taskmanager
+    container_name: flink_taskmanager
+    depends_on:
+      - jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        taskmanager.memory.process.size: 1024m
+    volumes:
+      - ./flink-config:/opt/flink/conf  # Optional custom Flink configuration
+      - ./plugins:/opt/flink/plugins    # Connectors go here
+    command: taskmanager
+
+  sql-client:
+    image: flink:1.20.0
+    container_name: flink_sql_client
+    depends_on:
+      - jobmanager
+      - taskmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        jobmanager.rpc.port: 6123  
+        parallelism.default: 1
+    volumes:
+      - ./flink-config:/opt/flink/conf  # Optional custom Flink configuration
+      - ./plugins:/opt/flink/plugins    # Connectors go here
+      - ./flink-jobs:/opt/flink/usrlib  # Store Flink SQL jobs
+      - ./sql-conf.yaml:/opt/flink/conf/sql-conf.yaml
+    entrypoint: ["bin/sql-client.sh"]
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: Rajat_sr123
+      MYSQL_DATABASE: your_database
+      MYSQL_USER: your_username
+      MYSQL_PASSWORD: your_Password12  
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql  # Persist MySQL data
+
+volumes:
+  mysql-data:

@@ -1,0 +1,21 @@
+{
+    "schemaName": "transportSchedule",
+    "dimensionFieldSpecs": [
+      { "name": "scheduleNo", "dataType": "INT" },
+      { "name": "type", "dataType": "STRING" },
+      { "name": "source", "dataType": "STRING" },
+      { "name": "destination", "dataType": "STRING" },
+      { "name": "departureTime", "dataType": "LONG" },
+      { "name": "arrivalTime", "dataType": "LONG" },
+      { "name": "operator", "dataType": "STRING" }
+    ],
+    "dateTimeFieldSpecs": [
+      {
+        "name": "createDate",
+        "dataType": "INT",
+        "format": "1:DAYS:EPOCH",
+        "granularity": "1:DAYS"
+      }
+    ]
+  }
+  
